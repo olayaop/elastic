@@ -1,0 +1,233 @@
+1.put命令
+PUT /orcl/student/0001
+{
+  "id":1111,
+  "name":"张三",
+  "age":"20",
+  "sex":"男"
+}
+
+返回：
+{
+  "_index": "orcl",
+  "_type": "student",
+  "_id": "0001",
+  "_version": 1,
+  "result": "created",
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  },
+  "created": true
+}
+2.get命令：
+GET /orcl/student/0001
+返回：
+{
+  "_index": "orcl",
+  "_type": "student",
+  "_id": "0001",
+  "_version": 1,
+  "found": true,
+  "_source": {
+    "id": 1111,
+    "name": "张三",
+    "age": "20",
+    "sex": "男"
+  }
+}
+3.删除命令
+DELETE /orcl/student/0001
+{
+  "found": true,
+  "_index": "orcl",
+  "_type": "student",
+  "_id": "0001",
+  "_version": 4,
+  "result": "deleted",
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  }
+}
+4.批量删除：
+POST /orcl/_delete_by_query?pretty
+{
+  "query": { 
+    "match": {
+      "name": "王"
+    }
+  }
+}
+返回结果：
+{
+  "took": 35,
+  "timed_out": false,
+  "total": 2,
+  "deleted": 2,
+  "batches": 1,
+  "version_conflicts": 0,
+  "noops": 0,
+  "retries": {
+    "bulk": 0,
+    "search": 0
+  },
+  "throttled_millis": 0,
+  "requests_per_second": -1,
+  "throttled_until_millis": 0,
+  "failures": []
+}
+5.更新一条数据
+POST /orcl/student/0004
+{
+  "id":1112,
+  "name":"李四1",
+  "age":"22",
+  "sex":"男女"
+}
+重新查询：
+GET   /orcl/student/0004
+{
+  "_index": "orcl",
+  "_type": "student",
+  "_id": "0004",
+  "_version": 3,
+  "found": true,
+  "_source": {
+    "id": 1112,
+    "name": "李四1",
+    "age": "22",
+    "sex": "男女"
+  }
+}
+6.批量更新：
+
+7.批量获取：
+1）传入 index/type/id
+GET _mget
+{
+    "docs" : [
+        {
+            "_index" : "orcl",
+            "_type" : "student",
+            "_id" : "0001"
+        },
+        {
+            "_index" : "orcl",
+            "_type" : "student",
+            "_id" : "0002"
+        }
+    ]
+}
+2)_mget命令传入index
+上述查询等价于：
+GET orcl/student/_mget
+{
+    "docs" : [
+        {
+            "_id" : "0001"
+        },
+        {
+            "_id" : "0002"
+        }
+    ]
+}
+3)同样等价于：
+GET orcl/student/_mget
+{
+    "ids" : ["0001", "0002"]
+}
+ 上面三种的返回结果集：
+ {
+  "docs": [
+    {
+      "_index": "orcl",
+      "_type": "student",
+      "_id": "0001",
+      "_version": 2,
+      "found": true,
+      "_source": {
+        "id": 1111,
+        "name": "张三",
+        "age": "20",
+        "sex": "男"
+      }
+    },
+    {
+      "_index": "orcl",
+      "_type": "student",
+      "_id": "0002",
+      "_version": 2,
+      "found": true,
+      "_source": {
+        "id": 1111,
+        "name": "张三",
+        "age": "20",
+        "sex": "男"
+      }
+    }
+  ]
+}
+返回的字段过滤：
+下面分别为不返回source,返回部分字段，包含(include)/去除exclude 某些字段的例子,
+GET _mget
+{
+    "docs" : [
+        {
+            "_index" : "orcl",
+            "_type" : "student",
+            "_id" : "0001",
+            "_source" : false
+        },
+        {
+            "_index" : "orcl",
+            "_type" : "student",
+            "_id" : "0002",
+            "_source" : ["age", "sex"]
+        },
+        {
+            "_index" : "orcl",
+            "_type" : "student",
+            "_id" : "0002",
+            "_source" : {
+                "include": ["name"],
+                "exclude": ["age"]
+            }
+        }
+    ]
+}
+返回结果集:
+{
+  "docs": [
+    {
+      "_index": "orcl",
+      "_type": "student",
+      "_id": "0001",
+      "_version": 2,
+      "found": true
+    },
+    {
+      "_index": "orcl",
+      "_type": "student",
+      "_id": "0002",
+      "_version": 2,
+      "found": true,
+      "_source": {
+        "sex": "男",
+        "age": "20"
+      }
+    },
+    {
+      "_index": "orcl",
+      "_type": "student",
+      "_id": "0002",
+      "_version": 2,
+      "found": true,
+      "_source": {
+        "name": "张三"
+      }
+    }
+  ]
+}
